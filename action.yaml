@@ -39,16 +39,12 @@ runs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    - name: Set up JDK 17 for deploy to OSSRH
+    - name: Set up JDK 17 for deploy to github packages
       uses: actions/setup-java@v3
       with:
         distribution: "adopt"
         java-version: ${{ inputs.java-version }}
-        server-id: ossrh
-        server-username: MAVEN_USERNAME
-        server-password: MAVEN_PASSWORD
-        gpg-private-key: ${{ inputs.gpg-private-key }}
-        gpg-passphrase: MAVEN_GPG_PASSPHRASE
+        server-id: github
 
     - name: Build with Maven
       run: mvn -B package --file pom.xml
@@ -58,26 +54,6 @@ runs:
       if: ${{ inputs.library-version != '' }}
       run: mvn versions:set -DnewVersion=${{ inputs.library-version }}
       shell: bash
-
-    - name: Prepare Maven environnement with Java 17 for deployment to OSSRH
-      run: export MAVEN_OPTS="--add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.text=ALL-UNNAMED --add-opens=java.desktop/java.awt.font=ALL-UNNAMED"
-      shell: bash
-
-    - name: Publish to Apache Maven Central
-      run: mvn deploy -PossrhDeploy
-      shell: bash
-      env:
-        MAVEN_USERNAME: ${{ inputs.nexus-username }}
-        MAVEN_CENTRAL_TOKEN: ${{ inputs.nexus-password }}
-        MAVEN_PASSWORD: ${{ inputs.nexus-password }}
-        MAVEN_GPG_PASSPHRASE: ${{ inputs.gpg-passphrase }}
-
-    - name: Set up JDK 17 for deploy to github packages
-      uses: actions/setup-java@v3
-      with:
-        distribution: "adopt"
-        java-version: ${{ inputs.java-version }}
-        server-id: github
 
     - name: Publish to GitHub Packages Apache Maven
       run: mvn deploy -PgithubDeploy
